@@ -65,10 +65,15 @@ app.get("/", (req, res) => {
 
     // Logs
     const logs = fs.existsSync(LOG_DIR)
-        ? fs.readdirSync(LOG_DIR).map(file => ({
-            name: file,
-            size: (fs.statSync(path.join(LOG_DIR, file)).size / 1024).toFixed(2),
-        }))
+        ? fs.readdirSync(LOG_DIR)
+            .filter(file =>
+                fs.statSync(path.join(LOG_DIR, file)).isFile() &&
+                !file.toLowerCase().includes("audit")
+            )
+            .map(file => ({
+                name: file,
+                size: (fs.statSync(path.join(LOG_DIR, file)).size / 1024).toFixed(2),
+            }))
         : [];
 
     res.render("dashboard", {
