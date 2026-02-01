@@ -1,5 +1,23 @@
-node_modules
-backups
-logs
-.env
+# Dependencies
+node_modules/
 
+# Environment variables
+.env
+.env.*
+
+# Backups (database dumps)
+backups/
+
+# Logs (winston + rotated + audit files)
+logs/
+logs/*.log
+logs/*.json
+logs/*.gz
+logs/*-audit.json
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+
+# npm
+npm-debug.log*

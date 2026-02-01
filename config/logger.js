@@ -2,41 +2,28 @@ import fs from "fs";
 import path from "path";
 import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
+import dotenv from "dotenv";
+dotenv.config();
 
 const logDir = path.join(process.cwd(), "logs");
-
-const currentDate = new Date().toISOString().split("T")[0];
-
-if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-}
+fs.mkdirSync(logDir, { recursive: true });
 
 const logger = createLogger({
     level: "info",
     format: format.combine(
-        format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-        format.printf(
-            ({ timestamp, level, message }) =>
-                `${timestamp} [${level.toUpperCase()}] ${message}`
-        )
+        format.timestamp(),
+        format.json()
     ),
+    defaultMeta: {
+        service: "pg-backup-worker",
+        env: process.env.NODE_ENV || "development",
+    },
     transports: [
-        new transports.Console(),
-
         new transports.DailyRotateFile({
-            filename: path.join(logDir, currentDate, "pg-backup-%DATE%.log"),
+            filename: path.join(logDir, "pg-backup-%DATE%.json"),
             datePattern: "YYYY-MM-DD",
             zippedArchive: true,
-            maxSize: "20m",
             maxFiles: "14d",
-        }),
-
-        new transports.DailyRotateFile({
-            filename: path.join(logDir, currentDate, "pg-backup-error-%DATE%.log"),
-            level: "error",
-            datePattern: "YYYY-MM-DD",
-            zippedArchive: true,
-            maxFiles: "30d",
         }),
     ],
 });

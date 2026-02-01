@@ -15,7 +15,10 @@ const {
 } = process.env;
 
 if (!PG_HOST || !PG_USER || !PG_PASSWORD) {
-    logger.error("Missing required env variables");
+    logger.error({
+        event: "startup_error",
+        message: "Missing required env variables",
+    });
     process.exit(1);
 }
 
@@ -29,11 +32,14 @@ fs.mkdirSync(backupRoot, { recursive: true });
 
 const listDbCommand = `psql -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -At -c "SELECT datname FROM pg_database WHERE datistemplate = false;"`;
 
-logger.info("Fetching database list...");
+logger.info({ event: "list_databases_start" });
 
 exec(listDbCommand, { env }, (err, stdout) => {
     if (err) {
-        logger.error(`Failed to list databases: ${err.message}`);
+        logger.error({
+            event: "list_databases_failed",
+            error: err.message,
+        });
         process.exit(1);
     }
 
@@ -42,22 +48,22 @@ exec(listDbCommand, { env }, (err, stdout) => {
         .map(db => db.trim())
         .filter(Boolean);
 
-    if (databases.length === 0) {
-        logger.warn("No databases found");
-        return;
-    }
+    logger.info({
+        event: "list_databases_success",
+        count: databases.length,
+    });
 
-    logger.info(`Found ${databases.length} databases`);
     backupDatabasesSequentially(databases);
 });
 
 function backupDatabasesSequentially(databases) {
     const db = databases.shift();
-
     if (!db) {
-        logger.info("All databases backed up successfully");
+        logger.info({ event: "backup_all_complete" });
         return;
     }
+
+    const startTime = Date.now();
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const currentDate = new Date().toISOString().split("T")[0];
@@ -69,13 +75,34 @@ function backupDatabasesSequentially(databases) {
 
     const dumpCommand = `pg_dump -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -F c -b -v -f "${filePath}" ${db}`;
 
-    logger.info(`Backing up database: ${db}`);
+    logger.info({
+        event: "backup_start",
+        database: db,
+    });
 
     exec(dumpCommand, { env }, (err) => {
+        const durationMs = Date.now() - startTime;
+
         if (err) {
-            logger.error(`Backup failed for ${db}: ${err.message}`);
+            logger.error({
+                event: "backup_failed",
+                database: db,
+                duration_ms: durationMs,
+                error: err.message,
+            });
         } else {
-            logger.info(`Backup completed: ${db}`);
+            const stats = fs.statSync(filePath);
+            const fileSizeBytes = stats.size;
+            const fileSizeMB = +(fileSizeBytes / 1024 / 1024).toFixed(2);
+
+            logger.info({
+                event: "backup_success",
+                database: db,
+                file: filePath,
+                duration_ms: durationMs,
+                file_size_bytes: fileSizeBytes,
+                file_size_mb: fileSizeMB,
+            });
         }
 
         backupDatabasesSequentially(databases);
