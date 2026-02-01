@@ -1,0 +1,135 @@
+/* ---------- Global ---------- */
+body {
+  font-family:
+    "Inter",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background: #f4f7fb;
+  color: #1f2937;
+  margin: 0;
+}
+
+.stats span {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.stats strong {
+  font-size: 1.6rem;
+}
+
+/* ---------- Header ---------- */
+header {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  padding: 18px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* ---------- Main ---------- */
+main {
+  padding: 24px;
+}
+
+/* ---------- Stats Cards ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.stats div {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.stats div:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.stats strong {
+  display: block;
+  font-size: 1.4rem;
+  margin-top: 6px;
+  color: #4f46e5;
+}
+
+/* ---------- Section Titles ---------- */
+h2 {
+  margin-top: 32px;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+  color: #374151;
+}
+
+/* ---------- Lists ---------- */
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+li {
+  background: #ffffff;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------- Links ---------- */
+a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Chart ---------- */
+canvas {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  max-width: 420px;
+}
+
+/* ---------- Footer ---------- */
+footer {
+  text-align: center;
+  padding: 14px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+/* ---------- Small Screens ---------- */
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 1.1rem;
+  }
+
+  main {
+    padding: 16px;
+  }
+}

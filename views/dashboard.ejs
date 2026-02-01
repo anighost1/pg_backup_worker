@@ -1,0 +1,101 @@
+<%- include('layout', { body: ` <!--=====STATS=====-->
+    <section class="stats">
+        <div>
+            <span>Total Backups</span>
+            <strong>${stats.totalBackups}</strong>
+        </div>
+
+        <div>
+            <span>Backup Size</span>
+            <strong>${stats.totalBackupSizeMB} MB</strong>
+        </div>
+
+        <div>
+            <span>Log Files</span>
+            <strong>${stats.logFiles}</strong>
+        </div>
+
+        <div>
+            <span>Server Time</span>
+            <strong>${stats.serverTime}</strong>
+        </div>
+    </section>
+
+    <p id="lastUpdated" style="margin-top: -10px; color: #6b7280;"></p>
+
+    <!-- ===== BACKUP STATUS ===== -->
+    <section style="margin-top: 30px;">
+        <h2>Backup Status</h2>
+        <canvas id="backupChart" width="300"></canvas>
+    </section>
+
+    <!-- ===== BACKUP DATES ===== -->
+    <section>
+        <h2>Backup Dates</h2>
+        <ul>
+            ${backupDates.map(d => `<li>${d}</li>`).join("")}
+        </ul>
+    </section>
+
+    <!-- ===== LOG FILES ===== -->
+    <section>
+        <h2>Logs</h2>
+        <ul>
+            ${logs.map(l => `
+            <li>
+                <a href="/logs/${l.name}" target="_blank">
+                    ${l.name}
+                </a>
+                <span style="color:#6b7280;font-size:0.85rem;">
+                    ${l.size} KB
+                </span>
+            </li>
+            `).join("")}
+        </ul>
+    </section>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let chart;
+
+        async function loadStats() {
+            const res = await fetch("/api/stats");
+            const data = await res.json();
+
+            // Chart
+            if (!chart) {
+                chart = new Chart(document.getElementById("backupChart"), {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Success", "Failure"],
+                        datasets: [{
+                            data: [data.backups.success, data.backups.failure]
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                position: "bottom"
+                            }
+                        }
+                    }
+                });
+            } else {
+                chart.data.datasets[0].data = [
+                    data.backups.success,
+                    data.backups.failure
+                ];
+                chart.update();
+            }
+
+            document.getElementById("lastUpdated").innerText =
+                "Last updated: " + data.time;
+        }
+
+        loadStats();
+        setInterval(loadStats, 10000);
+    </script>
+
+    ` }) %>
