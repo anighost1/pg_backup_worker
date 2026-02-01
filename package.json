@@ -1,0 +1,17 @@
+{
+  "name": "pg_backup_worker",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "backup": "node backup.js"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  }
+}
