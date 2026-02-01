@@ -36,18 +36,38 @@ function getBackupStats() {
     let success = 0;
     let failure = 0;
 
-    const logFile = path.join(LOG_DIR, "app.log");
-    if (!fs.existsSync(logFile)) return { success, failure };
+    if (!fs.existsSync(LOG_DIR)) return { success, failure };
 
-    const lines = fs.readFileSync(logFile, "utf-8").split("\n");
+    const logFiles = fs.readdirSync(LOG_DIR)
+        .filter(file =>
+            file.endsWith(".json") &&
+            !file.startsWith(".") &&
+            !file.toLowerCase().includes("audit")
+        );
 
-    for (const line of lines) {
-        if (line.includes("backup_success")) success++;
-        if (line.includes("backup_failed")) failure++;
+    for (const file of logFiles) {
+        const filePath = path.join(LOG_DIR, file);
+        const lines = fs.readFileSync(filePath, "utf-8").split("\n");
+
+        for (const line of lines) {
+            if (!line.trim()) continue;
+
+            try {
+                const entry = JSON.parse(line);
+                const event = entry.message?.event;
+
+                if (event === "backup_success") success++;
+                if (event === "backup_failed") failure++;
+            } catch {
+                // ignore malformed lines
+            }
+        }
     }
 
     return { success, failure };
 }
+
+
 
 app.get("/", (req, res) => {
     const backupDates = fs.existsSync(BACKUP_DIR)
@@ -101,12 +121,14 @@ app.get("/logs/:filename", (req, res) => {
 });
 
 app.get("/api/stats", (req, res) => {
-    const backupStats = getBackupStats();
+    const { success, failure } = getBackupStats();
 
     res.json({
-        backups: backupStats,
-        sizeMB: (getDirectorySize(BACKUP_DIR) / 1024 / 1024).toFixed(2),
-        time: dayjs().format("HH:mm:ss"),
+        backups: {
+            success,
+            failure
+        },
+        time: dayjs().format("HH:mm:ss")
     });
 });
 
