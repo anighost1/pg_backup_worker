@@ -6,7 +6,7 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "backup": "node backup.js"
+    "start": "node index.js"
   },
   "main": "index.js",
   "dependencies": {

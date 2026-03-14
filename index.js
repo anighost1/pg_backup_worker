@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { startBackupCron } from "./cron-backup.js";
 
 const app = express();
-const PORT = process.env.DASHBOARD_PORT || 3000;
+const PORT = process.env.DASHBOARD_PORT || 10000;
 
 const ROOT = process.cwd();
 const BACKUP_DIR = path.join(ROOT, "backups");

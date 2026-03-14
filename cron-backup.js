@@ -12,7 +12,7 @@ export function startBackupCron() {
     console.log("Backup cron initialized...");
 
     cron.schedule(
-        "11 18 * * *",
+        "* 14 * * *",
         () => {
             console.log("Running backup at:", new Date().toISOString());
 

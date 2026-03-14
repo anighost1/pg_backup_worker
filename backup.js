@@ -131,7 +131,7 @@ function backupDatabasesSequentially(databases) {
 
     const startTime = Date.now();
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-") + "-" + Date.now();
     const currentDate = new Date().toISOString().split("T")[0];
 
     const dbDir = path.join(backupRoot, currentDate, dbName);
@@ -139,6 +139,13 @@ function backupDatabasesSequentially(databases) {
 
     const backupFile = `${dbName}-${timestamp}.dump`;
     const filePath = path.join(dbDir, backupFile);
+
+    if (fs.existsSync(filePath)) {
+        logger.warn({
+            event: "backup_file_exists",
+            file: filePath,
+        });
+    }
 
     const dumpCommand = `pg_dump -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -F c -b -f "${filePath}" ${dbName}`;
 
