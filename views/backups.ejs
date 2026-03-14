@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Backups</title>
+
+<style>
+body{font-family:Arial;background:#f5f6fa;padding:40px}
+
+.date-section{
+    margin-bottom:40px;
+    background:white;
+    padding:20px;
+    border-radius:8px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+
+th{
+    background:#2f3640;
+    color:white;
+}
+
+.download{
+    background:#27ae60;
+    color:white;
+    padding:6px 10px;
+    text-decoration:none;
+    border-radius:4px;
+}
+
+.download-all{
+    background:#2980b9;
+    color:white;
+    padding:8px 14px;
+    text-decoration:none;
+    border-radius:4px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Database Backups</h1>
+
+<% Object.keys(backups).forEach(date => { %>
+
+<div class="date-section">
+
+<div class="header">
+<h2><%= date %></h2>
+
+<a class="download-all"
+   href="/api/backups/download-date/<%= date %>">
+   Download All
+</a>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Database</th>
+<th>File</th>
+<th>Size MB</th>
+<th>Download</th>
+</tr>
+</thead>
+
+<tbody>
+
+<% backups[date].forEach(b => { %>
+
+<tr>
+<td><%= b.database %></td>
+<td><%= b.file %></td>
+<td><%= b.size %></td>
+
+<td>
+<a class="download" href="<%= b.url %>">
+Download
+</a>
+</td>
+
+</tr>
+
+<% }) %>
+
+</tbody>
+</table>
+
+</div>
+
+<% }) %>
+
+</body>
+</html>
