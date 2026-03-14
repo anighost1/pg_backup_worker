@@ -1,64 +1,85 @@
 <%- include('layout', { body: ` <section class="stats">
-    <div>
+
+    <div class="stat-card">
         <span>Total Backups</span>
         <strong>${stats.totalBackups}</strong>
     </div>
 
-    <div>
+    <div class="stat-card">
         <span>Backup Size</span>
         <strong>${stats.totalBackupSizeMB} MB</strong>
     </div>
 
-    <div>
+    <div class="stat-card">
         <span>Log Files</span>
         <strong>${stats.logFiles}</strong>
     </div>
 
-    <div>
+    <div class="stat-card">
         <span>Server Time</span>
         <strong>${stats.serverTime}</strong>
     </div>
+
     </section>
 
-    <p id="lastUpdated" style="margin-top: -10px; color: #6b7280;"></p>
+    <p id="lastUpdated"></p>
 
-    <section class="chart-section">
+
+    <section class="card">
+
         <h2>Backup Status</h2>
+
         <div class="chart-wrapper">
             <canvas id="backupChart"></canvas>
         </div>
+
     </section>
 
-    <section>
+
+    <section class="card">
+
         <h2>Backup Dates</h2>
+
+        <a class="btn" href="/backups">
+            Open Backup Manager →
+        </a>
+
         <ul>
             ${backupDates.map(d => `<li>${d}</li>`).join("")}
         </ul>
+
     </section>
 
-    <section>
+
+    <section class="card">
+
         <h2>Logs</h2>
+
         <ul>
+
             ${logs.map(l => `
-            <li>
+            <li class="log-item">
+
                 <a href="/logs/${l.name}" target="_blank">
                     ${l.name}
                 </a>
-                <span style="color:#6b7280;font-size:0.85rem;">
+
+                <span class="log-size">
                     ${l.size} KB
                 </span>
+
             </li>
             `).join("")}
+
         </ul>
+
     </section>
 
-    <!-- ===== SCRIPTS ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- ===== SCRIPTS ===== -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+
         let chart;
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -67,22 +88,21 @@
         });
 
         async function loadStats() {
+
             try {
+
                 const res = await fetch("/api/stats");
                 const data = await res.json();
 
-                if (!data.backups) {
-                    console.error("Invalid stats response", data);
-                    return;
-                }
+                if (!data.backups) return;
 
                 const success = Number(data.backups.success || 0);
                 const failure = Number(data.backups.failure || 0);
 
                 const canvas = document.getElementById("backupChart");
-                if (!canvas) return;
 
                 if (!chart) {
+
                     chart = new Chart(canvas.getContext("2d"), {
                         type: "doughnut",
                         data: {
@@ -94,7 +114,7 @@
                         },
                         options: {
                             responsive: true,
-                            maintainAspectRatio: false, // 🔴 REQUIRED
+                            maintainAspectRatio: false,
                             plugins: {
                                 legend: {
                                     position: "bottom"
@@ -102,19 +122,25 @@
                             }
                         }
                     });
+
                 } else {
+
                     chart.data.datasets[0].data = [success, failure];
                     chart.update();
+
                 }
 
                 document.getElementById("lastUpdated").innerText =
                     "Last updated: " + data.time;
 
             } catch (err) {
-                console.error("Failed to load stats", err);
-            }
-        }
-    </script>
 
+                console.error("Failed to load stats", err);
+
+            }
+
+        }
+
+    </script>
 
     ` }) %>

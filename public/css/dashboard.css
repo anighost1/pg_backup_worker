@@ -1,0 +1,109 @@
+/* ===== PAGE ===== */
+
+body{
+    background:#f4f6fb;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color:#1f2937;
+}
+
+/* ===== STATS ===== */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.stat-card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.stat-card span{
+    font-size:0.75rem;
+    color:#6b7280;
+}
+
+.stat-card strong{
+    font-size:1.6rem;
+    margin-top:5px;
+    display:block;
+}
+
+/* ===== CARDS ===== */
+
+.card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    margin-top:25px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h2{
+    margin-bottom:10px;
+}
+
+/* ===== CHART ===== */
+
+.chart-wrapper{
+    height:260px;
+}
+
+/* ===== BUTTON ===== */
+
+.btn{
+    display:inline-block;
+    margin-top:10px;
+    background:#2563eb;
+    color:white;
+    padding:8px 14px;
+    border-radius:6px;
+    text-decoration:none;
+    font-size:0.9rem;
+    transition:background 0.2s;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+/* ===== LIST ===== */
+
+ul{
+    margin-top:10px;
+    padding-left:18px;
+}
+
+li{
+    margin-bottom:6px;
+}
+
+/* ===== LOGS ===== */
+
+.log-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.log-size{
+    color:#6b7280;
+    font-size:0.85rem;
+}
+
+/* ===== LAST UPDATED ===== */
+
+#lastUpdated{
+    font-size:0.85rem;
+    color:#6b7280;
+}
