@@ -3,6 +3,7 @@
 
 <head>
     <title>Backups</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -14,10 +15,15 @@
             width: min(1120px, calc(100% - 32px));
             margin: 0 auto;
             background:
-                linear-gradient(180deg, #f3f7f5 0, #f7f8fb 220px, #f7f8fb 100%);
+                linear-gradient(135deg, rgba(40, 116, 90, 0.08) 0, rgba(79, 109, 245, 0.06) 42%, rgba(247, 248, 251, 0) 72%),
+                linear-gradient(180deg, #f5faf7 0, #f7f8fb 240px, #f7f8fb 100%);
             color: #172033;
             font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
             padding: 28px 0 40px;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
 
         h1 {
@@ -31,8 +37,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 18px;
+            margin-bottom: 22px;
+            padding-bottom: 20px;
             border-bottom: 1px solid #e7eaf0;
         }
 
@@ -50,19 +56,22 @@
             font-size: 0.9rem;
             font-weight: 600;
             text-decoration: none;
+            transition: color 0.18s ease, transform 0.18s ease;
         }
 
         .back-link:hover {
             color: #172033;
+            transform: translateX(-2px);
         }
 
         .date-section {
             margin-bottom: 14px;
-            background: white;
+            background: rgba(255, 255, 255, 0.92);
             border: 1px solid #e8ebf1;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 8px 24px rgba(23, 32, 51, 0.04);
+            box-shadow: 0 10px 30px rgba(23, 32, 51, 0.05);
+            backdrop-filter: blur(10px);
             transition: border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
@@ -76,8 +85,8 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
-            background: white;
+            padding: 15px 16px;
+            background: rgba(255, 255, 255, 0.86);
             color: #172033;
             cursor: pointer;
             transition: background 0.18s ease;
@@ -91,6 +100,27 @@
             font-size: 0.98rem;
             font-weight: 650;
             margin: 0;
+        }
+
+        .date-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .file-count {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 4px 9px;
+            border: 1px solid #d8efe3;
+            border-radius: 999px;
+            background: #f4fbf7;
+            color: #146c43;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
         .arrow {
@@ -109,6 +139,7 @@
             padding: 11px 14px;
             border-top: 1px solid #edf0f5;
             font-size: 0.9rem;
+            overflow-wrap: anywhere;
         }
 
         tbody tr {
@@ -132,6 +163,7 @@
             color: #146c43;
             font-weight: 650;
             text-decoration: none;
+            white-space: nowrap;
         }
 
         .download:hover {
@@ -146,7 +178,7 @@
         }
 
         .download-all {
-            padding: 7px 11px;
+            padding: 8px 12px;
             border: 1px solid #cfd7e6;
             border-radius: 6px;
             background: #172033;
@@ -184,17 +216,95 @@
         @media (max-width: 640px) {
             body {
                 width: min(100% - 24px, 1120px);
+                background:
+                    linear-gradient(135deg, rgba(40, 116, 90, 0.09) 0, rgba(79, 109, 245, 0.05) 48%, rgba(247, 248, 251, 0) 78%),
+                    linear-gradient(180deg, #f5faf7 0, #f7f8fb 210px, #f7f8fb 100%);
+                padding-top: 22px;
             }
 
             .topbar,
             .header {
-                align-items: flex-start;
+                align-items: stretch;
                 flex-direction: column;
+            }
+
+            .topbar {
+                gap: 14px;
+            }
+
+            h1 {
+                font-size: 1.28rem;
+                line-height: 1.25;
+            }
+
+            .back-link {
+                align-self: flex-start;
+            }
+
+            .date-section {
+                margin-bottom: 12px;
+            }
+
+            .header {
+                padding: 14px;
+            }
+
+            .date-title {
+                align-items: flex-start;
+            }
+
+            .file-count {
+                align-self: flex-start;
             }
 
             .download-all {
                 width: 100%;
                 justify-content: center;
+            }
+
+            table,
+            thead,
+            tbody,
+            tr,
+            th,
+            td {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                padding: 12px 14px;
+                border-top: 1px solid #edf0f5;
+            }
+
+            td {
+                display: grid;
+                grid-template-columns: 88px minmax(0, 1fr);
+                gap: 12px;
+                padding: 7px 0;
+                border-top: 0;
+            }
+
+            td::before {
+                content: attr(data-label);
+                color: #687386;
+                font-size: 0.76rem;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .download {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 36px;
+                padding: 7px 10px;
+                border: 1px solid #d8efe3;
+                border-radius: 6px;
+                background: #f4fbf7;
             }
         }
     </style>
@@ -220,12 +330,14 @@
 
             <div class="header">
 
-                <div style="display:flex;align-items:center;gap:10px;">
+                <div class="date-title">
                     <span class="arrow">&#9656;</span>
                     <h2>
                         <%= date %>
                     </h2>
                 </div>
+
+                <span class="file-count"><%= backups[date].length %> file<%= backups[date].length === 1 ? '' : 's' %></span>
 
                 <a class="download-all" href="<%= basePath %>/api/backups/download-date/<%= date %>" onclick="event.stopPropagation()">
                     Download All
@@ -251,17 +363,17 @@
                         <% backups[date].forEach(b=> { %>
 
                             <tr>
-                                <td>
+                                <td data-label="Database">
                                     <%= b.database %>
                                 </td>
-                                <td>
+                                <td data-label="File">
                                     <%= b.file %>
                                 </td>
-                                <td>
+                                <td data-label="Size MB">
                                     <%= b.size %>
                                 </td>
 
-                                <td>
+                                <td data-label="Download">
                                     <a class="download" href="<%= b.url %>">
                                         Download
                                     </a>

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -5,9 +6,16 @@ import dayjs from "dayjs";
 import archiver from "archiver";
 import { startBackupCron } from "./cron-backup.js";
 
+function normalizeBasePath(basePath) {
+    const trimmed = String(basePath || "/pg-worker").trim();
+    if (!trimmed || trimmed === "/") return "/";
+    return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
+}
+
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 10000;
-const BASE_PATH = process.env.DASHBOARD_BASE_PATH || "/pg-worker";
+const ROUTE_BASE_PATH = normalizeBasePath(process.env.DASHBOARD_BASE_PATH);
+const VIEW_BASE_PATH = ROUTE_BASE_PATH === "/" ? "" : ROUTE_BASE_PATH;
 const router = express.Router();
 
 const ROOT = process.cwd();
@@ -19,7 +27,7 @@ startBackupCron()
 app.set("view engine", "ejs");
 app.set("views", path.join(ROOT, "views"));
 
-app.use(BASE_PATH, express.static(path.join(ROOT, "public")));
+app.use(ROUTE_BASE_PATH, express.static(path.join(ROOT, "public")));
 
 function getDirectorySize(dir) {
     let total = 0;
@@ -111,7 +119,7 @@ router.get("/", (req, res) => {
         },
         backupDates,
         logs,
-        basePath: BASE_PATH,
+        basePath: VIEW_BASE_PATH,
     });
 });
 
@@ -179,14 +187,14 @@ router.get("/backups", (req, res) => {
                         database: db,
                         file,
                         size,
-                        url: `${BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
+                        url: `${VIEW_BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
                     });
                 });
             });
         });
     }
 
-    res.render("backups", { backups: groupedBackups, basePath: BASE_PATH });
+    res.render("backups", { backups: groupedBackups, basePath: VIEW_BASE_PATH });
 });
 
 router.get("/logs/:filename", (req, res) => {
@@ -259,7 +267,7 @@ router.get("/api/backups", (req, res) => {
                     date,
                     database: db,
                     file,
-                    downloadUrl: `${BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
+                    downloadUrl: `${VIEW_BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
                 });
             });
         });
@@ -292,12 +300,14 @@ router.get("/api/backups/download", (req, res) => {
     res.download(filePath);
 });
 
-app.get("/", (req, res) => {
-    res.redirect(BASE_PATH);
-});
+if (ROUTE_BASE_PATH !== "/") {
+    app.get("/", (req, res) => {
+        res.redirect(ROUTE_BASE_PATH);
+    });
+}
 
-app.use(BASE_PATH, router);
+app.use(ROUTE_BASE_PATH, router);
 
 app.listen(PORT, () => {
-    console.log(`Dashboard running at http://localhost:${PORT}${BASE_PATH}`);
+    console.log(`Dashboard running at http://localhost:${PORT}${VIEW_BASE_PATH || "/"}`);
 });

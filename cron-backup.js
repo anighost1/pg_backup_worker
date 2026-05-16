@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cron from "node-cron";
 import { exec } from "child_process";
 import { fileURLToPath } from "url";
@@ -8,11 +9,17 @@ export function startBackupCron() {
     const __dirname = path.dirname(__filename);
 
     const backupPath = path.join(__dirname, "backup.js");
+    const schedule = process.env.BACKUP_CRON_SCHEDULE || "0 14 * * *";
+    const timezone = process.env.BACKUP_CRON_TIMEZONE || "Asia/Kolkata";
 
-    console.log("Backup cron initialized...");
+    if (!cron.validate(schedule)) {
+        throw new Error(`Invalid BACKUP_CRON_SCHEDULE: ${schedule}`);
+    }
+
+    console.log(`Backup cron initialized: ${schedule} (${timezone})`);
 
     cron.schedule(
-        "* 14 * * *",
+        schedule,
         () => {
             console.log("Running backup at:", new Date().toISOString());
 
@@ -29,7 +36,7 @@ export function startBackupCron() {
             });
         },
         {
-            timezone: "Asia/Kolkata",
+            timezone,
         }
     );
 }
