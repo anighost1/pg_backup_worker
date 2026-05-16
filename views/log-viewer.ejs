@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title><%= filename %> | Logs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" href="<%= basePath %>/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            min-width: 320px;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            background:
+                linear-gradient(135deg, rgba(40, 116, 90, 0.08) 0, rgba(79, 109, 245, 0.06) 42%, rgba(247, 248, 251, 0) 72%),
+                linear-gradient(180deg, #f5faf7 0, #f7f8fb 240px, #f7f8fb 100%);
+            color: #172033;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 28px 0 42px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e7eaf0;
+        }
+
+        .eyebrow {
+            display: block;
+            margin-bottom: 6px;
+            color: #28745a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            line-height: 1.25;
+            overflow-wrap: anywhere;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 1px solid #cfd7e6;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.78);
+            color: #172033;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .btn.primary {
+            border-color: #172033;
+            background: #172033;
+            color: #fff;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card,
+        .log-entry {
+            border: 1px solid #e8ebf1;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 10px 30px rgba(23, 32, 51, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-card {
+            min-height: 82px;
+            padding: 14px;
+        }
+
+        .summary-card span {
+            display: block;
+            margin-bottom: 6px;
+            color: #687386;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .summary-card strong {
+            font-size: 1.35rem;
+        }
+
+        .log-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .log-entry {
+            overflow: hidden;
+        }
+
+        .log-main {
+            display: grid;
+            grid-template-columns: 96px minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 14px;
+        }
+
+        .line {
+            color: #687386;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .event {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            min-width: 0;
+        }
+
+        .event strong {
+            overflow-wrap: anywhere;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .badge.success {
+            background: #f4fbf7;
+            color: #16824f;
+        }
+
+        .badge.failed {
+            background: #fff7f6;
+            color: #c24135;
+        }
+
+        .badge.warning {
+            background: #fff8eb;
+            color: #a16207;
+        }
+
+        .badge.info {
+            background: #f1f5ff;
+            color: #3d5bd7;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 8px;
+            color: #687386;
+            font-size: 0.84rem;
+        }
+
+        .meta span {
+            overflow-wrap: anywhere;
+        }
+
+        details {
+            border-top: 1px solid #edf0f5;
+        }
+
+        summary {
+            padding: 10px 14px;
+            color: #566276;
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        pre {
+            max-height: 420px;
+            margin: 0;
+            overflow: auto;
+            padding: 14px;
+            background: #101827;
+            color: #dce8ff;
+            font-size: 0.82rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .empty-state {
+            padding: 18px;
+            border: 1px solid #e8ebf1;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #687386;
+        }
+
+        @media (max-width: 920px) {
+            .summary {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .log-main {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                width: min(100% - 24px, 1180px);
+                padding-top: 22px;
+            }
+
+            .topbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .actions {
+                justify-content: stretch;
+            }
+
+            .btn {
+                flex: 1 1 140px;
+            }
+
+            .summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .summary-card {
+                min-height: 72px;
+                padding: 12px;
+            }
+
+            .summary-card strong {
+                font-size: 1.12rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="topbar">
+        <div>
+            <span class="eyebrow">Log Viewer</span>
+            <h1><%= filename %></h1>
+        </div>
+
+        <nav class="actions">
+            <a class="btn" href="<%= basePath %>/">Dashboard</a>
+            <a class="btn" href="<%= basePath %>/logs/<%= filename %>/raw" target="_blank">Raw JSON</a>
+            <a class="btn primary" href="<%= basePath %>/backups">Backups</a>
+        </nav>
+    </header>
+
+    <section class="summary">
+        <div class="summary-card"><span>Total</span><strong><%= summary.total %></strong></div>
+        <div class="summary-card"><span>Success</span><strong><%= summary.success %></strong></div>
+        <div class="summary-card"><span>Failed</span><strong><%= summary.failed %></strong></div>
+        <div class="summary-card"><span>Warning</span><strong><%= summary.warning %></strong></div>
+        <div class="summary-card"><span>Info</span><strong><%= summary.info %></strong></div>
+        <div class="summary-card"><span>Size</span><strong><%= sizeKB %> KB</strong></div>
+    </section>
+
+    <% if (!entries.length) { %>
+        <p class="empty-state">No log entries found.</p>
+    <% } %>
+
+    <main class="log-list">
+        <% entries.forEach(entry => { %>
+            <article class="log-entry">
+                <div class="log-main">
+                    <span class="line">Line <%= entry.line %></span>
+
+                    <div>
+                        <div class="event">
+                            <span class="badge <%= entry.status %>"><%= entry.status %></span>
+                            <strong><%= entry.event.replaceAll("_", " ") %></strong>
+                        </div>
+
+                        <div class="meta">
+                            <% if (entry.timestamp) { %><span><%= entry.timestamp %></span><% } %>
+                            <% if (entry.database) { %><span>DB: <%= entry.database %></span><% } %>
+                            <% if (entry.duration) { %><span><%= entry.duration %></span><% } %>
+                            <% if (entry.size) { %><span><%= entry.size %></span><% } %>
+                            <% if (entry.file) { %><span><%= entry.file %></span><% } %>
+                        </div>
+                    </div>
+
+                    <span class="line"><%= entry.level %></span>
+                </div>
+
+                <details>
+                    <summary>View JSON details</summary>
+                    <pre><code><%= entry.detail %></code></pre>
+                </details>
+            </article>
+        <% }) %>
+    </main>
+</body>
+
+</html>

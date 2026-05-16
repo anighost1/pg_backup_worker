@@ -269,6 +269,83 @@ function getBackupStats() {
     return { success, failure };
 }
 
+function getLogFilePath(filename) {
+    const safeName = path.basename(filename);
+    const filePath = path.resolve(LOG_DIR, safeName);
+    const logRoot = path.resolve(LOG_DIR);
+
+    if (!filePath.startsWith(logRoot) || safeName !== filename || !fs.existsSync(filePath)) {
+        return null;
+    }
+
+    return filePath;
+}
+
+function parseLogFile(filePath) {
+    const lines = fs.readFileSync(filePath, "utf-8").split("\n");
+    const entries = [];
+    const summary = {
+        total: 0,
+        success: 0,
+        failed: 0,
+        warning: 0,
+        info: 0,
+        malformed: 0,
+    };
+
+    lines.forEach((line, index) => {
+        const raw = line.trim();
+        if (!raw) return;
+
+        summary.total++;
+
+        try {
+            const entry = JSON.parse(raw);
+            const message = entry.message || {};
+            const event = message.event || "log_entry";
+            const level = String(entry.level || "info").toLowerCase();
+            const status = event.includes("failed") || level === "error"
+                ? "failed"
+                : event.includes("success")
+                    ? "success"
+                    : level === "warn" || level === "warning"
+                        ? "warning"
+                        : "info";
+
+            summary[status]++;
+
+            entries.push({
+                line: index + 1,
+                level,
+                status,
+                event,
+                database: message.database || "",
+                timestamp: entry.timestamp ? dayjs(entry.timestamp).format("YYYY-MM-DD HH:mm:ss") : "",
+                duration: message.durationMs ? `${message.durationMs} ms` : "",
+                size: message.sizeMB !== undefined ? `${message.sizeMB} MB` : "",
+                file: message.file || "",
+                detail: JSON.stringify(entry, null, 2),
+            });
+        } catch {
+            summary.malformed++;
+            entries.push({
+                line: index + 1,
+                level: "invalid",
+                status: "failed",
+                event: "malformed_json",
+                database: "",
+                timestamp: "",
+                duration: "",
+                size: "",
+                file: "",
+                detail: raw,
+            });
+        }
+    });
+
+    return { entries, summary };
+}
+
 
 
 router.get("/", (req, res) => {
@@ -385,16 +462,36 @@ router.get("/backups", (req, res) => {
     res.render("backups", { backups: groupedBackups, basePath: VIEW_BASE_PATH });
 });
 
-router.get("/logs/:filename", (req, res) => {
+router.get("/logs/:filename/raw", (req, res) => {
     const file = req.params.filename;
-    const filePath = path.join(LOG_DIR, file);
+    const filePath = getLogFilePath(file);
 
-    if (!filePath.startsWith(LOG_DIR) || !fs.existsSync(filePath)) {
+    if (!filePath) {
         return res.status(404).send("Log file not found");
     }
 
     const content = fs.readFileSync(filePath, "utf-8");
     res.type("text/plain").send(content);
+});
+
+router.get("/logs/:filename", (req, res) => {
+    const file = req.params.filename;
+    const filePath = getLogFilePath(file);
+
+    if (!filePath) {
+        return res.status(404).send("Log file not found");
+    }
+
+    const { entries, summary } = parseLogFile(filePath);
+    const sizeKB = (fs.statSync(filePath).size / 1024).toFixed(2);
+
+    res.render("log-viewer", {
+        basePath: VIEW_BASE_PATH,
+        filename: file,
+        entries,
+        summary,
+        sizeKB,
+    });
 });
 
 router.get("/api/backups/download-date/:date", (req, res) => {
