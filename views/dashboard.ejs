@@ -33,6 +33,17 @@
             <canvas id="backupChart"></canvas>
         </div>
 
+        <div class="status-row">
+            <div class="status-chip success">
+                <span>Success</span>
+                <strong id="successCount">0</strong>
+            </div>
+            <div class="status-chip failure">
+                <span>Failure</span>
+                <strong id="failureCount">0</strong>
+            </div>
+        </div>
+
     </section>
 
 
@@ -106,15 +117,24 @@
                             labels: ["Success", "Failure"],
                             datasets: [{
                                 data: [success, failure],
-                                backgroundColor: ["#22c55e", "#ef4444"]
+                                backgroundColor: ["#20c073", "#f05d4f"],
+                                borderColor: "#ffffff",
+                                borderWidth: 4,
+                                hoverOffset: 6
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            cutout: "68%",
                             plugins: {
                                 legend: {
-                                    position: "bottom"
+                                    position: "bottom",
+                                    labels: {
+                                        boxWidth: 10,
+                                        boxHeight: 10,
+                                        usePointStyle: true
+                                    }
                                 }
                             }
                         }
@@ -129,6 +149,8 @@
 
                 document.getElementById("lastUpdated").innerText =
                     "Last updated: " + data.time;
+                document.getElementById("successCount").innerText = success;
+                document.getElementById("failureCount").innerText = failure;
 
             } catch (err) {
 

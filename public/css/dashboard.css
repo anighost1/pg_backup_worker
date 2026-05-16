@@ -4,7 +4,8 @@
 
 body {
     margin: 0;
-    background: #f7f8fb;
+    background:
+        linear-gradient(180deg, #f3f7f5 0, #f7f8fb 220px, #f7f8fb 100%);
     color: #172033;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
@@ -17,6 +18,10 @@ footer {
 }
 
 header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     padding: 28px 0 18px;
     border-bottom: 1px solid #e7eaf0;
 }
@@ -29,9 +34,41 @@ p {
 
 header h1 {
     margin-bottom: 0;
-    font-size: 1.35rem;
-    font-weight: 650;
+    font-size: 1.45rem;
+    font-weight: 700;
     letter-spacing: 0;
+}
+
+.eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: #28745a;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid #cce8dc;
+    border-radius: 999px;
+    background: #f4fbf7;
+    color: #146c43;
+    font-size: 0.84rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-pill span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #20c073;
+    box-shadow: 0 0 0 4px rgba(32, 192, 115, 0.14);
 }
 
 main {
@@ -55,11 +92,40 @@ footer {
     background: #fff;
     border: 1px solid #e8ebf1;
     border-radius: 8px;
-    box-shadow: 0 8px 24px rgba(23, 32, 51, 0.04);
+    box-shadow: 0 10px 30px rgba(23, 32, 51, 0.05);
 }
 
 .stat-card {
+    position: relative;
     padding: 18px;
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #28745a;
+}
+
+.stat-card:nth-child(2)::before {
+    background: #4f6df5;
+}
+
+.stat-card:nth-child(3)::before {
+    background: #d97706;
+}
+
+.stat-card:nth-child(4)::before {
+    background: #6b7280;
+}
+
+.stat-card:hover {
+    border-color: #d7dde8;
+    box-shadow: 0 14px 36px rgba(23, 32, 51, 0.08);
+    transform: translateY(-1px);
 }
 
 .stat-card span {
@@ -84,6 +150,10 @@ footer {
     padding: 18px;
 }
 
+.card:first-of-type {
+    border-color: #dceee6;
+}
+
 .card h2 {
     margin-bottom: 14px;
     font-size: 1rem;
@@ -104,6 +174,54 @@ footer {
 
 .chart-wrapper {
     height: 260px;
+    padding: 6px 0 2px;
+}
+
+.status-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.status-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #edf0f5;
+    border-radius: 8px;
+    background: #fafbfc;
+}
+
+.status-chip span {
+    color: #687386;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.status-chip strong {
+    font-size: 1.18rem;
+}
+
+.status-chip.success {
+    background: #f4fbf7;
+    border-color: #d8efe3;
+}
+
+.status-chip.success strong {
+    color: #16824f;
+}
+
+.status-chip.failure {
+    background: #fff7f6;
+    border-color: #f4d8d4;
+}
+
+.status-chip.failure strong {
+    color: #c24135;
 }
 
 .btn {
@@ -119,10 +237,13 @@ footer {
     font-size: 0.88rem;
     font-weight: 600;
     text-decoration: none;
+    transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
 
 .btn:hover {
     background: #273247;
+    box-shadow: 0 8px 20px rgba(23, 32, 51, 0.16);
+    transform: translateY(-1px);
 }
 
 .inline-list,
@@ -145,6 +266,13 @@ footer {
     border: 1px solid #edf0f5;
     border-radius: 6px;
     background: #fafbfc;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.inline-list li:hover,
+.log-item:hover {
+    border-color: #dce2eb;
+    background: #fff;
 }
 
 .log-item {
@@ -191,6 +319,15 @@ footer {
     .section-head {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .status-row {
+        grid-template-columns: 1fr;
     }
 
     .btn {

@@ -13,7 +13,8 @@
         body {
             width: min(1120px, calc(100% - 32px));
             margin: 0 auto;
-            background: #f7f8fb;
+            background:
+                linear-gradient(180deg, #f3f7f5 0, #f7f8fb 220px, #f7f8fb 100%);
             color: #172033;
             font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
             padding: 28px 0 40px;
@@ -35,6 +36,15 @@
             border-bottom: 1px solid #e7eaf0;
         }
 
+        .title-group span {
+            display: block;
+            margin-bottom: 6px;
+            color: #28745a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
         .back-link {
             color: #566276;
             font-size: 0.9rem;
@@ -53,6 +63,12 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(23, 32, 51, 0.04);
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .date-section.active {
+            border-color: #d8efe3;
+            box-shadow: 0 12px 32px rgba(23, 32, 51, 0.06);
         }
 
         .header {
@@ -64,6 +80,11 @@
             background: white;
             color: #172033;
             cursor: pointer;
+            transition: background 0.18s ease;
+        }
+
+        .header:hover {
+            background: #fafdfb;
         }
 
         .header h2 {
@@ -88,6 +109,14 @@
             padding: 11px 14px;
             border-top: 1px solid #edf0f5;
             font-size: 0.9rem;
+        }
+
+        tbody tr {
+            transition: background 0.16s ease;
+        }
+
+        tbody tr:hover {
+            background: #fbfcfd;
         }
 
         th {
@@ -125,10 +154,13 @@
             font-size: 0.86rem;
             font-weight: 600;
             text-decoration: none;
+            transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
         }
 
         .download-all:hover {
             background: #273247;
+            box-shadow: 0 8px 20px rgba(23, 32, 51, 0.16);
+            transform: translateY(-1px);
         }
 
         .content {
@@ -171,7 +203,10 @@
 <body>
 
     <div class="topbar">
-        <h1>Database Backups</h1>
+        <div class="title-group">
+            <span>Backup Manager</span>
+            <h1>Database Backups</h1>
+        </div>
         <a class="back-link" href="<%= basePath %>/">&larr; Dashboard</a>
     </div>
 
