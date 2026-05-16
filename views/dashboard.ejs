@@ -40,7 +40,7 @@
 
         <h2>Backup Dates</h2>
 
-        <a class="btn" href="/backups">
+        <a class="btn" href="${basePath}/backups">
             Open Backup Manager →
         </a>
 
@@ -60,7 +60,7 @@
             ${logs.map(l => `
             <li class="log-item">
 
-                <a href="/logs/${l.name}" target="_blank">
+                <a href="${basePath}/logs/${l.name}" target="_blank">
                     ${l.name}
                 </a>
 
@@ -91,7 +91,7 @@
 
             try {
 
-                const res = await fetch("/api/stats");
+                const res = await fetch("${basePath}/api/stats");
                 const data = await res.json();
 
                 if (!data.backups) return;

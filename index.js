@@ -7,6 +7,8 @@ import { startBackupCron } from "./cron-backup.js";
 
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 10000;
+const BASE_PATH = process.env.DASHBOARD_BASE_PATH || "/pg-worker";
+const router = express.Router();
 
 const ROOT = process.cwd();
 const BACKUP_DIR = path.join(ROOT, "backups");
@@ -17,7 +19,7 @@ startBackupCron()
 app.set("view engine", "ejs");
 app.set("views", path.join(ROOT, "views"));
 
-app.use(express.static(path.join(ROOT, "public")));
+app.use(BASE_PATH, express.static(path.join(ROOT, "public")));
 
 function getDirectorySize(dir) {
     let total = 0;
@@ -73,7 +75,7 @@ function getBackupStats() {
 
 
 
-app.get("/", (req, res) => {
+router.get("/", (req, res) => {
     const backupDates = fs.existsSync(BACKUP_DIR)
         ? fs.readdirSync(BACKUP_DIR)
         : [];
@@ -109,6 +111,7 @@ app.get("/", (req, res) => {
         },
         backupDates,
         logs,
+        basePath: BASE_PATH,
     });
 });
 
@@ -148,7 +151,7 @@ app.get("/", (req, res) => {
 
 //     res.render("backups", { backups });
 // });
-app.get("/backups", (req, res) => {
+router.get("/backups", (req, res) => {
     const backupRoot = path.resolve("./backups");
 
     const groupedBackups = {};
@@ -176,17 +179,17 @@ app.get("/backups", (req, res) => {
                         database: db,
                         file,
                         size,
-                        url: `/api/backups/download?date=${date}&db=${db}&file=${file}`
+                        url: `${BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
                     });
                 });
             });
         });
     }
 
-    res.render("backups", { backups: groupedBackups });
+    res.render("backups", { backups: groupedBackups, basePath: BASE_PATH });
 });
 
-app.get("/logs/:filename", (req, res) => {
+router.get("/logs/:filename", (req, res) => {
     const file = req.params.filename;
     const filePath = path.join(LOG_DIR, file);
 
@@ -198,7 +201,7 @@ app.get("/logs/:filename", (req, res) => {
     res.type("text/plain").send(content);
 });
 
-app.get("/api/backups/download-date/:date", (req, res) => {
+router.get("/api/backups/download-date/:date", (req, res) => {
 
     const date = req.params.date;
     const dir = path.join(process.cwd(), "backups", date);
@@ -217,7 +220,7 @@ app.get("/api/backups/download-date/:date", (req, res) => {
     archive.finalize();
 });
 
-app.get("/api/stats", (req, res) => {
+router.get("/api/stats", (req, res) => {
     const { success, failure } = getBackupStats();
 
     res.json({
@@ -229,7 +232,7 @@ app.get("/api/stats", (req, res) => {
     });
 });
 
-app.get("/api/backups", (req, res) => {
+router.get("/api/backups", (req, res) => {
     const backupRoot = path.resolve("./backups");
 
     if (!fs.existsSync(backupRoot)) {
@@ -256,7 +259,7 @@ app.get("/api/backups", (req, res) => {
                     date,
                     database: db,
                     file,
-                    downloadUrl: `/api/backups/download?date=${date}&db=${db}&file=${file}`
+                    downloadUrl: `${BASE_PATH}/api/backups/download?date=${date}&db=${db}&file=${file}`
                 });
             });
         });
@@ -267,7 +270,7 @@ app.get("/api/backups", (req, res) => {
     });
 });
 
-app.get("/api/backups/download", (req, res) => {
+router.get("/api/backups/download", (req, res) => {
     const { date, db, file } = req.query;
 
     if (!date || !db || !file) {
@@ -289,6 +292,12 @@ app.get("/api/backups/download", (req, res) => {
     res.download(filePath);
 });
 
+app.get("/", (req, res) => {
+    res.redirect(BASE_PATH);
+});
+
+app.use(BASE_PATH, router);
+
 app.listen(PORT, () => {
-    console.log(`Dashboard running on port : ${PORT}`);
+    console.log(`Dashboard running at http://localhost:${PORT}${BASE_PATH}`);
 });
