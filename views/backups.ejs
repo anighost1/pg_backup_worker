@@ -3,47 +3,80 @@
 
 <head>
     <title>Backups</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: Arial;
-            background: #f5f6fa;
-            padding: 40px;
+        * {
+            box-sizing: border-box;
         }
 
-        /* DATE CONTAINER */
+        body {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            background: #f7f8fb;
+            color: #172033;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            padding: 28px 0 40px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            font-weight: 650;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #e7eaf0;
+        }
+
+        .back-link {
+            color: #566276;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: #172033;
+        }
 
         .date-section {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             background: white;
+            border: 1px solid #e8ebf1;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 24px rgba(23, 32, 51, 0.04);
         }
-
-        /* HEADER BAR */
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 18px;
-            background: #2f3640;
-            color: white;
+            gap: 12px;
+            padding: 14px 16px;
+            background: white;
+            color: #172033;
             cursor: pointer;
         }
 
         .header h2 {
-            font-size: 16px;
+            font-size: 0.98rem;
+            font-weight: 650;
             margin: 0;
         }
 
         .arrow {
             margin-right: 10px;
+            color: #687386;
             transition: transform 0.2s;
         }
-
-        /* TABLE */
 
         table {
             width: 100%;
@@ -52,39 +85,55 @@
 
         th,
         td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 11px 14px;
+            border-top: 1px solid #edf0f5;
+            font-size: 0.9rem;
         }
 
         th {
-            background: #f3f4f6;
+            background: #fafbfc;
+            color: #687386;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-align: left;
+            text-transform: uppercase;
         }
 
-        /* BUTTONS */
-
         .download {
-            background: #27ae60;
-            color: white;
-            padding: 6px 10px;
+            color: #146c43;
+            font-weight: 650;
             text-decoration: none;
-            border-radius: 4px;
-            font-size: 13px;
+        }
+
+        .download:hover {
+            text-decoration: underline;
+        }
+
+        .download-all,
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
         }
 
         .download-all {
-            background: #2980b9;
-            color: white;
-            padding: 6px 12px;
+            padding: 7px 11px;
+            border: 1px solid #cfd7e6;
+            border-radius: 6px;
+            background: #172033;
+            color: #fff;
+            font-size: 0.86rem;
+            font-weight: 600;
             text-decoration: none;
-            border-radius: 4px;
-            font-size: 13px;
         }
 
-        /* COLLAPSIBLE CONTENT */
+        .download-all:hover {
+            background: #273247;
+        }
 
         .content {
             display: none;
+            overflow-x: auto;
         }
 
         .date-section.active .content {
@@ -94,12 +143,41 @@
         .date-section.active .arrow {
             transform: rotate(90deg);
         }
+
+        .empty-state {
+            margin: 24px 0;
+            color: #687386;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                width: min(100% - 24px, 1120px);
+            }
+
+            .topbar,
+            .header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .download-all {
+                width: 100%;
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <h1>Database Backups</h1>
+    <div class="topbar">
+        <h1>Database Backups</h1>
+        <a class="back-link" href="<%= basePath %>/">&larr; Dashboard</a>
+    </div>
+
+    <% if (Object.keys(backups).length === 0) { %>
+        <p class="empty-state">No backups found.</p>
+    <% } %>
 
     <% Object.keys(backups).forEach((date, index)=> { %>
 
@@ -108,7 +186,7 @@
             <div class="header">
 
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="arrow">▶</span>
+                    <span class="arrow">&#9656;</span>
                     <h2>
                         <%= date %>
                     </h2>
