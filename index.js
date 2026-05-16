@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import dayjs from "dayjs";
 import archiver from "archiver";
+import crypto from "crypto";
 import { startBackupCron } from "./cron-backup.js";
 
 function normalizeBasePath(basePath) {
@@ -12,11 +13,143 @@ function normalizeBasePath(basePath) {
     return `/${trimmed.replace(/^\/+|\/+$/g, "")}`;
 }
 
+function routePath(pathname) {
+    return ROUTE_BASE_PATH === "/" ? pathname : `${ROUTE_BASE_PATH}${pathname}`;
+}
+
+function timingSafeEqualString(a, b) {
+    const first = Buffer.from(String(a));
+    const second = Buffer.from(String(b));
+
+    if (first.length !== second.length) return false;
+
+    return crypto.timingSafeEqual(first, second);
+}
+
+function getSessionSecret() {
+    return process.env.DASHBOARD_SESSION_SECRET || process.env.DASHBOARD_PASSWORD;
+}
+
+function getCookie(req, name) {
+    const cookies = req.headers.cookie?.split(";") || [];
+
+    for (const cookie of cookies) {
+        const [rawKey, ...rawValue] = cookie.trim().split("=");
+        if (rawKey === name) return decodeURIComponent(rawValue.join("="));
+    }
+
+    return "";
+}
+
+function signSession(value) {
+    const sessionSecret = getSessionSecret();
+
+    if (!sessionSecret) return "";
+
+    return crypto
+        .createHmac("sha256", sessionSecret)
+        .update(value)
+        .digest("base64url");
+}
+
+function createSessionToken(username) {
+    const payload = Buffer.from(JSON.stringify({
+        username,
+        expiresAt: Date.now() + 1000 * 60 * 60 * 8,
+        nonce: crypto.randomBytes(16).toString("hex"),
+    })).toString("base64url");
+    const signature = signSession(payload);
+
+    return `${payload}.${signature}`;
+}
+
+function isValidSession(req) {
+    if (!getSessionSecret()) return false;
+
+    const token = getCookie(req, "pg_worker_session");
+    const [payload, signature] = token.split(".");
+
+    if (!payload || !signature || !timingSafeEqualString(signature, signSession(payload))) {
+        return false;
+    }
+
+    try {
+        const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf-8"));
+        return session.expiresAt > Date.now() && session.username === process.env.DASHBOARD_USERNAME;
+    } catch {
+        return false;
+    }
+}
+
+function getSessionCookieOptions(maxAgeSeconds) {
+    const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    return `HttpOnly; SameSite=Strict; Path=${ROUTE_BASE_PATH}; Max-Age=${maxAgeSeconds}${secure}`;
+}
+
+function clearSession(res) {
+    res.setHeader("Set-Cookie", `pg_worker_session=; ${getSessionCookieOptions(0)}`);
+}
+
+const failedLogins = new Map();
+
+function getLoginAttemptsKey(req) {
+    return req.ip || req.socket.remoteAddress || "unknown";
+}
+
+function isRateLimited(req) {
+    const attempt = failedLogins.get(getLoginAttemptsKey(req));
+    return attempt && attempt.count >= 5 && attempt.lockedUntil > Date.now();
+}
+
+function recordFailedLogin(req) {
+    const key = getLoginAttemptsKey(req);
+    const now = Date.now();
+    const current = failedLogins.get(key) || { count: 0, firstFailedAt: now, lockedUntil: 0 };
+    const withinWindow = now - current.firstFailedAt < 1000 * 60 * 10;
+    const count = withinWindow ? current.count + 1 : 1;
+
+    failedLogins.set(key, {
+        count,
+        firstFailedAt: withinWindow ? current.firstFailedAt : now,
+        lockedUntil: count >= 5 ? now + 1000 * 60 * 5 : 0,
+    });
+}
+
+function clearFailedLogins(req) {
+    failedLogins.delete(getLoginAttemptsKey(req));
+}
+
+function requireLogin(req, res, next) {
+    const expectedUsername = process.env.DASHBOARD_USERNAME;
+    const expectedPassword = process.env.DASHBOARD_PASSWORD;
+    const sessionSecret = getSessionSecret();
+
+    if (!expectedUsername || !expectedPassword || !sessionSecret) {
+        return res.status(503).send("Dashboard authentication is not configured");
+    }
+
+    if (!isValidSession(req)) {
+        const returnTo = encodeURIComponent(req.originalUrl || `${VIEW_BASE_PATH}/`);
+        return res.redirect(`${VIEW_BASE_PATH}/login?returnTo=${returnTo}`);
+    }
+
+    next();
+}
+
+function safeReturnTo(value) {
+    if (!value || typeof value !== "string") return `${VIEW_BASE_PATH}/`;
+    if (!value.startsWith(`${VIEW_BASE_PATH}/`) || value.startsWith("//")) return `${VIEW_BASE_PATH}/`;
+    if (value.startsWith(`${VIEW_BASE_PATH}/login`)) return `${VIEW_BASE_PATH}/`;
+    return value;
+}
+
 const app = express();
 const PORT = process.env.DASHBOARD_PORT || 10000;
 const ROUTE_BASE_PATH = normalizeBasePath(process.env.DASHBOARD_BASE_PATH);
 const VIEW_BASE_PATH = ROUTE_BASE_PATH === "/" ? "" : ROUTE_BASE_PATH;
 const router = express.Router();
+
+app.disable("x-powered-by");
 
 const ROOT = process.cwd();
 const BACKUP_DIR = path.join(ROOT, "backups");
@@ -27,6 +160,61 @@ startBackupCron()
 app.set("view engine", "ejs");
 app.set("views", path.join(ROOT, "views"));
 
+app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    next();
+});
+
+app.get(routePath("/login"), (req, res) => {
+    if (isValidSession(req)) {
+        return res.redirect(safeReturnTo(req.query.returnTo));
+    }
+
+    res.render("login", {
+        basePath: VIEW_BASE_PATH,
+        error: req.query.error === "1",
+        locked: req.query.locked === "1",
+        returnTo: safeReturnTo(req.query.returnTo),
+    });
+});
+
+app.post(routePath("/login"), (req, res) => {
+    const expectedUsername = process.env.DASHBOARD_USERNAME;
+    const expectedPassword = process.env.DASHBOARD_PASSWORD;
+
+    if (!expectedUsername || !expectedPassword || !getSessionSecret()) {
+        return res.status(503).send("Dashboard authentication is not configured");
+    }
+
+    const returnTo = safeReturnTo(req.body.returnTo);
+
+    if (isRateLimited(req)) {
+        return res.redirect(`${VIEW_BASE_PATH}/login?locked=1&returnTo=${encodeURIComponent(returnTo)}`);
+    }
+
+    const username = String(req.body.username || "");
+    const password = String(req.body.password || "");
+    const isValidUser = timingSafeEqualString(username, expectedUsername);
+    const isValidPassword = timingSafeEqualString(password, expectedPassword);
+
+    if (!isValidUser || !isValidPassword) {
+        recordFailedLogin(req);
+        return res.redirect(`${VIEW_BASE_PATH}/login?error=1&returnTo=${encodeURIComponent(returnTo)}`);
+    }
+
+    clearFailedLogins(req);
+    res.setHeader("Set-Cookie", `pg_worker_session=${createSessionToken(username)}; ${getSessionCookieOptions(60 * 60 * 8)}`);
+    res.redirect(returnTo);
+});
+
+app.post(routePath("/logout"), (req, res) => {
+    clearSession(res);
+    res.redirect(`${VIEW_BASE_PATH}/login`);
+});
+
+app.use(ROUTE_BASE_PATH, requireLogin);
 app.use(ROUTE_BASE_PATH, express.static(path.join(ROOT, "public")));
 
 function getDirectorySize(dir) {

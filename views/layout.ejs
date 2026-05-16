@@ -15,7 +15,12 @@
             <span class="eyebrow">PG Backup Worker</span>
             <h1>Postgres Backup Dashboard</h1>
         </div>
-        <span class="status-pill"><span></span> Running</span>
+        <div class="header-actions">
+            <span class="status-pill"><span></span> Running</span>
+            <form method="POST" action="<%= basePath %>/logout">
+                <button class="logout-btn" type="submit">Logout</button>
+            </form>
+        </div>
     </header>
 
     <main>

@@ -78,6 +78,34 @@ header h1 {
     white-space: nowrap;
 }
 
+.header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-actions form {
+    margin: 0;
+}
+
+.logout-btn {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid #d9dfe9;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #566276;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.logout-btn:hover {
+    border-color: #c9d1df;
+    color: #172033;
+}
+
 .status-pill span {
     width: 8px;
     height: 8px;
@@ -377,6 +405,11 @@ footer {
 
     .status-pill {
         align-self: flex-start;
+    }
+
+    .header-actions {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
     main {
