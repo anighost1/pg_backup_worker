@@ -92,7 +92,7 @@ function cleanupOldBackups() {
 /* =====================================================
    LIST DATABASES (EXCLUDE SYSTEM DBS)
 ===================================================== */
-const listDbCommand = `psql -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -At -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres');"`;
+const listDbCommand = `psql -h ${PG_HOST} -p ${PG_PORT} -U ${PG_USER} -d postgres -At -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres');"`;
 
 logger.info({ event: "list_databases_start" });
 
